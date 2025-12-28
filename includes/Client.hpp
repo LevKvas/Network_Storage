@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "Protocol.hpp"
 #include "SFML/Network.hpp"
 
 
@@ -22,9 +23,18 @@ public:
         }
     }
 
+    // user interface
+    bool set_value(std::string& key, std::string& value);
+    std::string get_value(std::string& key);
+    bool del_value(std::string& key);
+
     void sendCommand() { /* отправляет команды */ }
 
 private:
     sf::TcpSocket socket{};
     bool connected = false;
+
+    sf::Packet form_set_value_packet(std::string& key, std::string& value);
+    sf::Packet form_get_value_packet(std::string& key);
+    sf::Packet form_del_value_packet(std::string& key);
 };

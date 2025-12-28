@@ -1,11 +1,23 @@
 #pragma once
 
-#include "SFML/Network.hpp"
 #include <unordered_map>
-#include <thread>
 #include <chrono>
+#include <future>
 #include <mutex>
 
+#include "SFML/Network.hpp"
+#include "Protocol.hpp"
+
+
+class ErrorListen final: public std::exception{
+public:
+    const char* what() const noexcept override{return "Cannot listen on this port";}
+};
+
+class ErrorCommand final: public std::exception{
+public:
+    const char* what() const noexcept override{return "Failed to read command";}
+};
 
 class Server {
 public:
@@ -17,9 +29,7 @@ public:
         std::cout << "Start running " << std::endl;
 
         if (listener.listen(port) != sf::Socket::Status::Done) {
-            std::cout << "=== ERROR: Cannot listen on port " << port << "! ===" << std::endl;
-            std::cout << "Is another program using this port?" << std::endl;
-            return;
+            throw ErrorListen();
         }
 
         while(true){
@@ -28,24 +38,10 @@ public:
             std::cout << "=== Waiting for client... ===" << std::endl;
             if(listener.accept(*socket_for_client) == sf::Socket::Status::Done) {
                 std::cout << "=== CLIENT CONNECTED! ===" << std::endl;
-                auto status = socket_for_client->send("Hello", 5);
 
-                if (status == sf::Socket::Status::Done) {
-                    std::cout << "Data sent successfully" << std::endl;
-                } else if (status == sf::Socket::Status::Partial) {
-                    std::cout << "Partially sent" << std::endl;
-                } else if (status == sf::Socket::Status::NotReady) {
-                    std::cout << "The socket is not ready to send." << std::endl;
-                } else if (status == sf::Socket::Status::Disconnected) {
-                    std::cout << "The connection was broken." << std::endl;
-                } else if (status == sf::Socket::Status::Error) {
-                    std::cout << "Sent error" << std::endl;
-                }
+                // work with this client in another thread
+                auto future = std::async(std::launch::async, handle_client, this, std::ref(*socket_for_client));
 
-
-                std::this_thread::sleep_for(std::chrono::milliseconds(500));
-                socket_for_client->disconnect();
-                delete socket_for_client;
             }
             else {
                 delete socket_for_client;
@@ -57,6 +53,20 @@ public:
 
 private:
     int port{};
-    std::unordered_map<std::string, std::string> inf{};
+    std::unordered_map<std::string, std::string> data{};
     std::mutex mtx{};
+
+    void handle_client(sf::TcpSocket& client) const{
+        sf::Packet packet;
+
+        // get inf from client
+        if (client.receive(packet) == sf::Socket::Done) {
+            Command cmd;
+            if (!(packet >> cmd)) {
+                throw ErrorCommand();
+            }
+
+        }
+    }
+
 };
