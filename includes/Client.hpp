@@ -9,13 +9,14 @@ public:
     Client() = default;
 
     void connect(const std::string& server_ip, int server_port){
-        sf::SocketStatus status = socket.connect(server_ip, server_port);
+        sf::Socket::Status status = socket.connect(server_ip, server_port);
 
-        if(status == sf::SocketStatus::Done){
+        if(status == sf::Socket::Status::Done){
             char buffer[1024];
             std::size_t received;
             auto receive_status = socket.receive(buffer, sizeof(buffer), received);
-            if(receive_status == sf::SocketStatus::Done){
+
+            if(receive_status == sf::Socket::Status::Done){
               std::cout << buffer << std::endl;
             }
         }

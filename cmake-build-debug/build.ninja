@@ -52,7 +52,7 @@ build cmake_object_order_depends_target_NetworkStorage: phony || .
 build CMakeFiles/NetworkStorage.dir/main.cpp.obj: CXX_COMPILER__NetworkStorage_unscanned_Debug C$:/Users/USER/Desktop/c/Network_Storage/main.cpp || cmake_object_order_depends_target_NetworkStorage
   DEP_FILE = CMakeFiles\NetworkStorage.dir\main.cpp.obj.d
   FLAGS = -g -std=gnu++20 -fdiagnostics-color=always
-  INCLUDES = -IC:/Users/USER/Desktop/c/Network_Storage/includes -IC:/Users/USER/Desktop/c/Network_Storage/sfml-simple/include
+  INCLUDES = -IC:/Users/USER/Desktop/c/Network_Storage/SFML-2.6.2/include
   OBJECT_DIR = CMakeFiles\NetworkStorage.dir
   OBJECT_FILE_DIR = CMakeFiles\NetworkStorage.dir
 
@@ -64,9 +64,10 @@ build CMakeFiles/NetworkStorage.dir/main.cpp.obj: CXX_COMPILER__NetworkStorage_u
 #############################################
 # Link the executable NetworkStorage.exe
 
-build NetworkStorage.exe: CXX_EXECUTABLE_LINKER__NetworkStorage_Debug CMakeFiles/NetworkStorage.dir/main.cpp.obj | C$:/Users/USER/Desktop/c/Network_Storage/sfml-simple/lib/libsfml-network.a C$:/Users/USER/Desktop/c/Network_Storage/sfml-simple/lib/libsfml-system.a
+build NetworkStorage.exe: CXX_EXECUTABLE_LINKER__NetworkStorage_Debug CMakeFiles/NetworkStorage.dir/main.cpp.obj
   FLAGS = -g
-  LINK_LIBRARIES = C:/Users/USER/Desktop/c/Network_Storage/sfml-simple/lib/libsfml-network.a  C:/Users/USER/Desktop/c/Network_Storage/sfml-simple/lib/libsfml-system.a  -lws2_32  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_LIBRARIES = -lsfml-network  -lsfml-system  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
+  LINK_PATH = -LC:/Users/USER/Desktop/c/Network_Storage/SFML-2.6.2/lib
   OBJECT_DIR = CMakeFiles\NetworkStorage.dir
   POST_BUILD = cd .
   PRE_LINK = cd .

@@ -1,3 +1,8 @@
 # ninja log v6
-7	1187	7885420009081159	CMakeFiles/NetworkStorage.dir/main.cpp.obj	12d63ddac722f793
-1191	2693	7885420020928137	NetworkStorage.exe	5403eadb6f3af3f2
+6	1624	7886328899604229	CMakeFiles/NetworkStorage.dir/main.cpp.obj	f284b1181c8b46e2
+1625	2846	7886328915794890	NetworkStorage.exe	46a78ef939957af6
+3	700	7886358032468118	build.ninja	ab58d0c53746ccef
+7	1528	7886358060378773	CMakeFiles/NetworkStorage.dir/main.cpp.obj	7a6b98157247c262
+1532	2896	7886358075635232	NetworkStorage.exe	18fd0cfde164a977
+6	1993	7886359149455773	CMakeFiles/NetworkStorage.dir/main.cpp.obj	7a6b98157247c262
+1994	3612	7886359169335519	NetworkStorage.exe	18fd0cfde164a977

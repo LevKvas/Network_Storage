@@ -1,21 +1,18 @@
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.16)
 project(NetworkStorage)
 
 set(CMAKE_CXX_STANDARD 20)
-include_directories(includes)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# SFML
-include_directories(
-        ${CMAKE_CURRENT_SOURCE_DIR}/sfml-simple/include
-        # ИЛИ
-        ${CMAKE_CURRENT_SOURCE_DIR}/includes
-)
+set(SFML_ROOT "C:/Users/USER/Desktop/c/Network_Storage/SFML-2.6.2")
+
+include_directories(${SFML_ROOT}/include)
+
+link_directories(${SFML_ROOT}/lib)
 
 add_executable(NetworkStorage main.cpp)
 
-# chain libs
 target_link_libraries(NetworkStorage
-        ${CMAKE_CURRENT_SOURCE_DIR}/sfml-simple/lib/libsfml-network.a
-        ${CMAKE_CURRENT_SOURCE_DIR}/sfml-simple/lib/libsfml-system.a
-        ws2_32
+        sfml-network
+        sfml-system
 )
