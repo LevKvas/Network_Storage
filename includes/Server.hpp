@@ -19,11 +19,17 @@ public:
     const char* what() const noexcept override{return "Failed to read command";}
 };
 
+class ErrorSending final: public std::exception{
+public:
+    const char* what() const noexcept override{return "Failed to send data";}
+};
+
+
 class Server {
 public:
     explicit Server(int port_): port(port_) {}
 
-    void run() const{
+    void run() {
         sf::TcpListener listener; // one listener, socket
 
         std::cout << "Start running " << std::endl;
@@ -40,7 +46,7 @@ public:
                 std::cout << "=== CLIENT CONNECTED! ===" << std::endl;
 
                 // work with this client in another thread
-                auto future = std::async(std::launch::async, handle_client, this, std::ref(*socket_for_client));
+                auto future = std::async(std::launch::async, &Server::handle_client, this, std::ref(*socket_for_client));
 
             }
             else {
@@ -56,16 +62,35 @@ private:
     std::unordered_map<std::string, std::string> data{};
     std::mutex mtx{};
 
-    void handle_client(sf::TcpSocket& client) const{
+    void handle_client(sf::TcpSocket& client){
         sf::Packet packet;
 
         // get inf from client
         if (client.receive(packet) == sf::Socket::Done) {
             Command cmd;
-            if (!(packet >> cmd)) {
+            std::string key, value{};
+
+            // must contain command and key
+            if (!(packet >> cmd) || !(packet >> key)) {
                 throw ErrorCommand();
             }
 
+            if (cmd == Command::SetValue) {
+                if (!(packet >> value)) {throw ErrorCommand();}
+                std::lock_guard lock(mtx);
+                data[key] = value;
+            }
+
+            if (cmd == Command::GetValue) {
+                std::lock_guard lock(mtx);
+
+                // get value to client
+                sf::Packet val_packet{};
+                val_packet << data[key];
+                if (!client.send(val_packet) == sf::Socket::Done) {
+                    throw ErrorSending();
+                }
+            }
         }
     }
 

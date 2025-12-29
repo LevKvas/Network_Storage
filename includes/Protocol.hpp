@@ -4,11 +4,19 @@
 enum class Command : sf::Uint8 {
     SetValue,
     GetValue,
-    DeleteValue
+    DelValue
 };
 
 // for sending
-sf::Packet& operator<<(sf::Packet& packet, Command cmd);
+inline sf::Packet& operator<<(sf::Packet& packet, Command cmd) {
+    return packet << static_cast<sf::Uint8>(cmd);
+}
 
 // for reception
-sf::Packet& operator>>(sf::Packet& packet, Command& cmd);
+inline sf::Packet& operator>>(sf::Packet& packet, Command& cmd) {
+    sf::Uint8 value;
+    packet >> value;
+    cmd = static_cast<Command>(value);
+
+    return packet;
+}
