@@ -10,9 +10,23 @@ include_directories(${SFML_ROOT}/include)
 
 link_directories(${SFML_ROOT}/lib)
 
-add_executable(NetworkStorage main.cpp)
+#add_executable(NetworkStorage server_main.cpp)
+#
+#target_link_libraries(NetworkStorage
+#        sfml-network
+#        sfml-system
+#)
 
-target_link_libraries(NetworkStorage
+add_executable(server server_main.cpp)
+
+target_link_libraries(server
+        sfml-network
+        sfml-system
+)
+
+add_executable(client client_main.cpp src/Client.cpp)
+
+target_link_libraries(client
         sfml-network
         sfml-system
 )

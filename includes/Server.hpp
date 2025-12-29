@@ -4,6 +4,7 @@
 #include <chrono>
 #include <future>
 #include <mutex>
+#include <iostream>
 
 #include "SFML/Network.hpp"
 #include "Protocol.hpp"
@@ -19,9 +20,14 @@ public:
     const char* what() const noexcept override{return "Failed to read command";}
 };
 
-class ErrorSending final: public std::exception{
+class DataErrorSend final: public std::exception{
 public:
     const char* what() const noexcept override{return "Failed to send data";}
+};
+
+class KeyNotExist final: public std::exception{
+public:
+    const char* what() const noexcept override{return "Such a key does not exist";}
 };
 
 
@@ -46,7 +52,8 @@ public:
                 std::cout << "=== CLIENT CONNECTED! ===" << std::endl;
 
                 // work with this client in another thread
-                auto future = std::async(std::launch::async, &Server::handle_client, this, std::ref(*socket_for_client));
+                auto future = std::async(std::launch::async, &Server::handle_client, this,
+                    std::ref(*socket_for_client));
 
             }
             else {
@@ -63,10 +70,14 @@ private:
     std::mutex mtx{};
 
     void handle_client(sf::TcpSocket& client){
-        sf::Packet packet;
-
         // get inf from client
-        if (client.receive(packet) == sf::Socket::Done) {
+        while (true) {
+            sf::Packet packet;
+
+            if (client.receive(packet) != sf::Socket::Done) {
+                break;
+            }
+
             Command cmd;
             std::string key, value{};
 
@@ -81,16 +92,24 @@ private:
                 data[key] = value;
             }
 
-            if (cmd == Command::GetValue) {
-                std::lock_guard lock(mtx);
-
+            else if (cmd == Command::GetValue) {
                 // get value to client
+                std::cout << "they need to get value" << std::endl;
                 sf::Packet val_packet{};
-                val_packet << data[key];
-                if (!client.send(val_packet) == sf::Socket::Done) {
-                    throw ErrorSending();
+
+                auto it = data.find(key);
+
+                if (it != data.end()) {
+                    val_packet << it->second;
+                } else {
+                    throw KeyNotExist();
+                }
+
+                if (client.send(val_packet) != sf::Socket::Done) {
+                    throw DataErrorSend();
                 }
             }
+            else{std::cout << "else case" << std::endl;}
         }
     }
 

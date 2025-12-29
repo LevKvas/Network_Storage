@@ -4,7 +4,7 @@
 #include "Protocol.hpp"
 #include "SFML/Network.hpp"
 
-class ErrorSending final: public std::exception{
+class PacketErrorSend final: public std::exception{
 public:
     const char* what() const noexcept override{return "Cannot sent this packet";}
 };
@@ -36,8 +36,6 @@ public:
     std::string get_value(const std::string& key);
     bool del_value(const std::string& key);
 
-    void sendCommand() { /* отправляет команды */ }
-
 private:
     sf::TcpSocket socket{};
     bool connected = false;
@@ -45,8 +43,7 @@ private:
     std::string server_ip{};
     int server_port{};
 
-
-    sf::Packet form_set_value_packet(const std::string& key, const std::string& value);
-    sf::Packet form_get_value_packet(const std::string& key);
-    sf::Packet form_del_value_packet(const std::string& key);
+    sf::Packet static form_set_value_packet(const std::string& key, const std::string& value);
+    sf::Packet static form_get_value_packet(const std::string& key);
+    sf::Packet static form_del_value_packet(const std::string& key);
 };
