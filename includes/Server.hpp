@@ -86,13 +86,17 @@ private:
             Command cmd;
             std::string key, value{};
 
-            // must contain command and key
-            if (!(packet >> cmd) || !(packet >> key)) {
-                throw ErrorCommand();
+            // must check command
+            if (!(packet >> cmd)) {
+                std::cerr << "Missing command byte" << std::endl;
+
+                sf::Packet response;
+                response << static_cast<sf::Uint8>(0);
+                client.send(response);
+                return;
             }
 
             if (cmd == Command::SetValue) {
-                if (!(packet >> value)) {throw ErrorCommand();}
                 std::lock_guard lock(mtx);
 
                 bool set_flag = false;
@@ -109,19 +113,18 @@ private:
 
             else if (cmd == Command::GetValue) {
                 // get value to client
-                sf::Packet val_packet{};
+                sf::Packet response{};
 
                 auto it = data.find(key);
 
                 if (it != data.end()) {
-                    val_packet << it->second;
+                    response << static_cast<sf::Uint8>(1); // status
+                    response << it->second;
                 } else {
-                    throw KeyNotExist();
+                    response << static_cast<sf::Uint8>(0);
                 }
 
-                if (client.send(val_packet) != sf::Socket::Done) {
-                    throw DataErrorSend();
-                }
+                client.send(response) != sf::Socket::Done;
             }
             else if (cmd == Command::DelValue) {
                 std::lock_guard lock(mtx);
@@ -130,7 +133,12 @@ private:
                 packet << static_cast<sf::Uint8>(num_del == 1 ? 1 : 0);
                 client.send(packet);
             }
-            else{throw UnknownCommand();}
+            else { // will almost never happen
+                std::cerr << "Received unknown command: " << static_cast<int>(cmd) << std::endl;
+                sf::Packet response;
+                response << static_cast<sf::Uint8>(0);
+                client.send(response);
+            }
         }
     }
 

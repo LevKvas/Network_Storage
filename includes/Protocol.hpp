@@ -15,8 +15,10 @@ inline sf::Packet& operator<<(sf::Packet& packet, Command cmd) {
 // for reception
 inline sf::Packet& operator>>(sf::Packet& packet, Command& cmd) {
     sf::Uint8 value;
-    packet >> value;
-    cmd = static_cast<Command>(value);
+
+    if (packet >> value) {
+        cmd = static_cast<Command>(value);
+    }
 
     return packet;
 }

@@ -24,18 +24,28 @@ sf::Packet Client::form_del_value_packet(const std::string& key){
 }
 
 /*
-  key, value -> bool, status execution
+  key, value -> bool, if the val was entered - true, else - false
  */
 bool Client::set_value(const std::string& key, const std::string& value){
   // form packet
   auto packet = form_set_value_packet(key, value);
-  // send packet to server
 
+  // send packet to server
   if (socket.send(packet) != sf::Socket::Done) {
-    return false;
+    throw PacketErrorSend();
   }
 
-  return true;
+  sf::Packet status_set;
+
+  if (socket.receive(status_set) != sf::Socket::Done) {
+    throw ErrorReceiving();
+  }
+
+  sf::Uint8 status;
+  status_set >> status;
+  bool success = status != 0;
+
+  return success;
 }
 
 /*
@@ -52,11 +62,15 @@ std::string Client::get_value(const std::string& key){
 
   // get answer from server
   sf::Packet response;
+  sf::Uint8 status{};
   std::string response_str{};
 
   if (socket.receive(response) != sf::Socket::Done) {
     throw ErrorReceiving();
   }
+
+  response >> status;
+  if (status == 0){throw KeyNotFound();}
 
   response >> response_str;
 
@@ -82,7 +96,7 @@ bool Client::del_value(const std::string &key) {
   }
 
   sf::Uint8 status;
-  packet >> status;
+  status_deletion >> status;
   bool success = status != 0;
 
   return success;

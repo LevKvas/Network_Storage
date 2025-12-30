@@ -14,6 +14,11 @@ public:
     const char* what() const noexcept override{return "Cannot receive this packet";}
 };
 
+class KeyNotFound final: public std::exception{
+public:
+    const char* what() const noexcept override{return "Key not found";}
+};
+
 
 class Client {
 public:
