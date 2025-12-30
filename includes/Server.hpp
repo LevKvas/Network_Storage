@@ -94,7 +94,17 @@ private:
             if (cmd == Command::SetValue) {
                 if (!(packet >> value)) {throw ErrorCommand();}
                 std::lock_guard lock(mtx);
-                data[key] = value;
+
+                bool set_flag = false;
+
+                try {
+                    data[key] = value;
+                    set_flag = true;
+                }
+                catch (...) {set_flag = false;}
+
+                packet << static_cast<sf::Uint8>(set_flag ? 1 : 0);
+                client.send(packet);
             }
 
             else if (cmd == Command::GetValue) {
