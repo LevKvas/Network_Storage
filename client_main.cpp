@@ -12,13 +12,12 @@ int main(){
     cout << "Added was successfully" << endl;
   }
 
-  try {
-    auto get_inf = client.get_value("car");
-    cout << "Got data is: " << get_inf << endl;
-  }
-  catch(const std::exception& e) {
-    cerr << e.what() << endl;
-  }
+
+  auto get_inf = client.get_value("car");
+  cout << "Got data is: " << get_inf << endl;
+
+  auto status_deletion = client.del_value("car");
+  cout << status_deletion << endl;
 
   return 0;
 }

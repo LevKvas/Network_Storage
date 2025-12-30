@@ -1,4 +1,5 @@
 #include "../includes/Client.hpp"
+#include <cstdint>
 
 
 sf::Packet Client::form_set_value_packet(const std::string& key, const std::string& value){
@@ -60,4 +61,29 @@ std::string Client::get_value(const std::string& key){
   response >> response_str;
 
   return response_str;
+}
+
+/*
+ * key -> bool, true - if the val was deleted, false - if not.
+ *
+ */
+bool Client::del_value(const std::string &key) {
+  auto packet = form_del_value_packet(key);
+
+  // send packet to server
+  if (socket.send(packet) != sf::Socket::Done) {
+    throw PacketErrorSend();
+  }
+
+  sf::Packet status_deletion;
+
+  if (socket.receive(status_deletion) != sf::Socket::Done) {
+    throw ErrorReceiving();
+  }
+
+  sf::Uint8 status;
+  packet >> status;
+  bool success = status != 0;
+
+  return success;
 }

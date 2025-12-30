@@ -25,6 +25,11 @@ public:
     const char* what() const noexcept override{return "Failed to send data";}
 };
 
+class UnknownCommand final: public std::exception {
+public:
+    const char* what() const noexcept override{return "This type of command is not known.";}
+};
+
 class KeyNotExist final: public std::exception{
 public:
     const char* what() const noexcept override{return "Such a key does not exist";}
@@ -94,7 +99,6 @@ private:
 
             else if (cmd == Command::GetValue) {
                 // get value to client
-                std::cout << "they need to get value" << std::endl;
                 sf::Packet val_packet{};
 
                 auto it = data.find(key);
@@ -109,7 +113,14 @@ private:
                     throw DataErrorSend();
                 }
             }
-            else{std::cout << "else case" << std::endl;}
+            else if (cmd == Command::DelValue) {
+                std::lock_guard lock(mtx);
+                auto num_del = data.erase(key);
+
+                packet << static_cast<sf::Uint8>(num_del == 1 ? 1 : 0);
+                client.send(packet);
+            }
+            else{throw UnknownCommand();}
         }
     }
 
