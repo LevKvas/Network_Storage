@@ -40,6 +40,7 @@ public:
     explicit Server(int port_): port(port_) {}
 
     void run() {
+        running.store(true);
         sf::TcpListener listener; // one listener, socket
 
         std::cout << "Start running " << std::endl;
@@ -49,12 +50,13 @@ public:
             return;
         }
 
-        while(true){
+        while(running){
             auto socket_for_client = std::make_unique<sf::TcpSocket>();
 
             std::cout << "=== Waiting for client... ===" << std::endl;
             // if new client has connected
             if(listener.accept(*socket_for_client) == sf::Socket::Status::Done) {
+                if (!running){break;}
                 std::cout << "=== Client Connected ===" << std::endl;
 
                 // work with this client in another thread
@@ -66,8 +68,21 @@ public:
 
     int get_port() const { return port; }
 
+    void stop() {
+        running.store(false);
+        // connect to yourself
+        try {
+            sf::TcpSocket dummy;
+            dummy.connect("192.168.3.46", port, sf::seconds(1));
+            // if the server is no longer listening, terminate after 1 second.
+            dummy.disconnect();
+        }
+        catch (...) {}
+    }
+
 private:
     int port{};
+    std::atomic<bool> running{};
 
     std::unordered_map<std::string, std::string> data{};
     std::mutex mtx{};

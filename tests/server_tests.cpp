@@ -14,14 +14,19 @@ public:
     void SetUp() override {
         server = std::make_unique<Server>(port);
 
-        thread server_thread([this]() {
+        server_thread = std::thread([this]() {
             server->run();
         });
-        server_thread.detach();
+    }
+
+    void TearDown() override {
+        server->stop();
+        server_thread.join();
     }
 
 private:
     unique_ptr<Server> server;
+    std::thread server_thread;
 };
 
 
