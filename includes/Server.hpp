@@ -1,7 +1,6 @@
 #pragma once
 
 #include <unordered_map>
-#include <chrono>
 #include <future>
 #include <mutex>
 #include <iostream>
@@ -46,23 +45,21 @@ public:
         std::cout << "Start running " << std::endl;
 
         if (listener.listen(port) != sf::Socket::Status::Done) {
-            throw ErrorListen();
+            std::cerr << "Cannot listen on port " << port << std::endl;
+            return;
         }
 
         while(true){
-            auto* socket_for_client = new sf::TcpSocket();
-            // waiting for someone
+            auto socket_for_client = std::make_unique<sf::TcpSocket>();
+
             std::cout << "=== Waiting for client... ===" << std::endl;
+            // if new client has connected
             if(listener.accept(*socket_for_client) == sf::Socket::Status::Done) {
-                std::cout << "=== CLIENT CONNECTED! ===" << std::endl;
+                std::cout << "=== Client Connected ===" << std::endl;
 
                 // work with this client in another thread
-                auto future = std::async(std::launch::async, &Server::handle_client, this,
-                    std::ref(*socket_for_client));
-
-            }
-            else {
-                delete socket_for_client;
+                std::thread client_thread(&Server::handle_client, this, std::move(socket_for_client));
+                client_thread.detach();
             }
         }
     }
@@ -71,15 +68,16 @@ public:
 
 private:
     int port{};
+
     std::unordered_map<std::string, std::string> data{};
     std::mutex mtx{};
 
-    void handle_client(sf::TcpSocket& client){
+    void handle_client(std::unique_ptr<sf::TcpSocket> client){
         // get inf from client
         while (true) {
             sf::Packet packet;
 
-            if (client.receive(packet) != sf::Socket::Done) {
+            if (client->receive(packet) != sf::Socket::Done) {
                 break;
             }
 
@@ -92,11 +90,28 @@ private:
 
                 sf::Packet response;
                 response << static_cast<sf::Uint8>(0);
-                client.send(response);
+                client->send(response);
+                return;
+            }
+
+            // check key
+            if (!(packet >> key)) {
+                sf::Packet err;
+
+                err << sf::Uint8(0);
+                client->send(err);
                 return;
             }
 
             if (cmd == Command::SetValue) {
+                // check value
+                if (!(packet >> value)) {
+                    sf::Packet err;
+                    err << sf::Uint8(0);
+                    client->send(err);
+                    return;
+                }
+
                 std::lock_guard lock(mtx);
 
                 bool set_flag = false;
@@ -108,7 +123,7 @@ private:
                 catch (...) {set_flag = false;}
 
                 packet << static_cast<sf::Uint8>(set_flag ? 1 : 0);
-                client.send(packet);
+                client->send(packet);
             }
 
             else if (cmd == Command::GetValue) {
@@ -124,22 +139,21 @@ private:
                     response << static_cast<sf::Uint8>(0);
                 }
 
-                client.send(response) != sf::Socket::Done;
+                client->send(response);
             }
             else if (cmd == Command::DelValue) {
                 std::lock_guard lock(mtx);
                 auto num_del = data.erase(key);
 
                 packet << static_cast<sf::Uint8>(num_del == 1 ? 1 : 0);
-                client.send(packet);
+                client->send(packet);
             }
             else { // will almost never happen
                 std::cerr << "Received unknown command: " << static_cast<int>(cmd) << std::endl;
                 sf::Packet response;
                 response << static_cast<sf::Uint8>(0);
-                client.send(response);
+                client->send(response);
             }
         }
     }
-
 };
