@@ -13,14 +13,14 @@ int main(){
   }
 
   auto get_inf = client.get_value("car");
-  cout << "Got data is: " << get_inf << endl;
+  cout << "Got data is: " << *get_inf << endl;
 
   auto status_deletion = client.del_value("car");
   cout << status_deletion << endl;
 
   try {
     auto get_inf_2 = client.get_value("car");
-    cout << get_inf_2 << endl;
+    cout << *get_inf_2 << endl;
   }
   catch(const std::exception& e) {
     cout << e.what() << endl;

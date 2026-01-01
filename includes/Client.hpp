@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <optional>
 #include "Protocol.hpp"
 #include "SFML/Network.hpp"
 
@@ -12,11 +13,6 @@ public:
 class ErrorReceiving final: public std::exception{
 public:
     const char* what() const noexcept override{return "Cannot receive this packet";}
-};
-
-class KeyNotFound final: public std::exception{
-public:
-    const char* what() const noexcept override{return "Key not found";}
 };
 
 
@@ -38,7 +34,7 @@ public:
 
     // user interface
     bool set_value(const std::string& key, const std::string& value);
-    std::string get_value(const std::string& key);
+    std::optional<std::string> get_value(const std::string& key);
     bool del_value(const std::string& key);
 
 private:

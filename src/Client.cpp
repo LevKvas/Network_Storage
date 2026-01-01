@@ -1,5 +1,4 @@
 #include "../includes/Client.hpp"
-#include <cstdint>
 
 
 sf::Packet Client::form_set_value_packet(const std::string& key, const std::string& value){
@@ -49,9 +48,9 @@ bool Client::set_value(const std::string& key, const std::string& value){
 }
 
 /*
-  key -> std::string - value
+  key -> std::string - value, or if the key is not found - None
  */
-std::string Client::get_value(const std::string& key){
+std::optional<std::string> Client::get_value(const std::string& key){
   // form packet
   auto packet = form_get_value_packet(key);
 
@@ -70,7 +69,7 @@ std::string Client::get_value(const std::string& key){
   }
 
   response >> status;
-  if (status == 0){throw KeyNotFound();}
+  if (status == 0){return std::nullopt;}
 
   response >> response_str;
 
