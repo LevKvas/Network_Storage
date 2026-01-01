@@ -137,13 +137,17 @@ private:
                 }
                 catch (...) {set_flag = false;}
 
-                packet << static_cast<sf::Uint8>(set_flag ? 1 : 0);
-                client->send(packet);
+                sf::Packet response;
+
+                response << static_cast<sf::Uint8>(set_flag ? 1 : 0);
+                client->send(response);
             }
 
             else if (cmd == Command::GetValue) {
                 // get value to client
                 sf::Packet response{};
+
+                std::lock_guard lock(mtx);
 
                 auto it = data.find(key);
 
@@ -160,8 +164,9 @@ private:
                 std::lock_guard lock(mtx);
                 auto num_del = data.erase(key);
 
-                packet << static_cast<sf::Uint8>(num_del == 1 ? 1 : 0);
-                client->send(packet);
+                sf::Packet response;
+                response << static_cast<sf::Uint8>(num_del == 1 ? 1 : 0);
+                client->send(response);
             }
             else { // will almost never happen
                 std::cerr << "Received unknown command: " << static_cast<int>(cmd) << std::endl;
